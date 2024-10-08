@@ -12,7 +12,6 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 public class SignUpController {
     @FXML
@@ -57,28 +56,34 @@ public class SignUpController {
         return;
     }
 
-    profilePictureFileName = profilePictureFile.getName();
+    profilePictureFileName = profilePictureFile.getName().toString();
 
     try {
-        URL url = URI.create("http://localhost:3000/register").toURL();
+        URL url = URI.create("http://localhost:3001/register").toURL();
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json; utf-8");
+        conn.setRequestProperty("Content-Type", "application/json");
         conn.setDoOutput(true);
 
         // Construct JSON request body
         String requestBody = String.format(
-            "{\"firstName\":\"%s\",\"lastName\":\"%s\",\"password\":\"%s\",\"profilePicture\":\"%s\"}",
+            "{\n" +
+            "  \"firstName\": \"%s\",\n" +
+            "  \"lastName\": \"%s\",\n" +
+            "  \"password\": \"%s\",\n" +
+            "  \"profilePicture\": \"%s\"\n" +
+            "}",
             escapeJson(firstNameField.getText()), 
             escapeJson(lastNameField.getText()), 
             escapeJson(passwordField.getText()), 
             escapeJson(profilePictureFileName)
         );
 
+
         System.out.println("Request JSON: " + requestBody);
 
         try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = requestBody.getBytes(StandardCharsets.UTF_8);
+            byte[] input = requestBody.getBytes("utf-8");
             os.write(input, 0, input.length);
         }
 
@@ -98,14 +103,13 @@ private String escapeJson(String value) {
     return value.replace("\"", "\\\"");
 }
 
-
     @FXML
     public void loginUser() {
         try {
-            URL url = URI.create("http://localhost:3000/login").toURL(); // Updated to use URI
+            URL url = URI.create("http://localhost:3001/login").toURL(); // Updated to use URI
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json; utf-8");
+            conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 
             String requestBody = String.format(
@@ -113,8 +117,10 @@ private String escapeJson(String value) {
                 firstNameField.getText(), lastNameField.getText(), passwordField.getText()
             );
 
+            System.out.println("Login JSON: " + requestBody);
+
             try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = requestBody.getBytes(StandardCharsets.UTF_8);
+                byte[] input = requestBody.getBytes("utf-8");
                 os.write(input, 0, input.length);
             }
 
@@ -124,7 +130,7 @@ private String escapeJson(String value) {
                 showAlert("Login successful.");
                 openChatWindow();
             } else {
-                showAlert("Login failed: " + conn.getResponseMessage());
+                showAlert("Login failed: " + conn.getResponseMessage() + " " + responseCode);
             }
         } catch (IOException e) {
             showAlert("Failed to connect to the server.");

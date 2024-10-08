@@ -7,29 +7,27 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NetworkService {
 
-    // Method for sending a POST request
     public String sendPostRequest(String urlString, String jsonInputString) {
         HttpURLConnection conn = null;
         try {
             URL url = URI.create(urlString).toURL();
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json; utf-8");
-            conn.setRequestProperty("Accept", "application/json");
+            conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
 
-            // Write the request body to the connection
             try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                byte[] input = jsonInputString.getBytes("utf-8");
                 os.write(input, 0, input.length);
             }
 
-            // Read the response
             int responseCode = conn.getResponseCode();
             try (BufferedReader br = new BufferedReader(new InputStreamReader(
                     responseCode >= 200 && responseCode < 300 ? conn.getInputStream() : conn.getErrorStream(),
@@ -39,11 +37,7 @@ public class NetworkService {
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
                 }
-                if (responseCode >= 200 && responseCode < 300) {
-                    return response.toString(); // Success response
-                } else {
-                    return "Error: " + responseCode + " - " + response.toString(); // Error response
-                }
+                return response.toString();
             }
         } catch (Exception e) {
             return "Exception: " + e.getMessage();
@@ -54,38 +48,18 @@ public class NetworkService {
         }
     }
 
-    // Method for sending a GET request
-    public String sendGetRequest(String urlString) {
-        HttpURLConnection conn = null;
-        try {
-            URL url = URI.create(urlString).toURL();
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
+    public List<String> getChatHistory(String user1, String user2) {
+        List<String> chatHistory = new ArrayList<>();
+        chatHistory.add("User1: Hi!");
+        chatHistory.add("User2: Hello!");
+        return chatHistory;
+    }
 
-            int responseCode = conn.getResponseCode();
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(
-                    responseCode == HttpURLConnection.HTTP_OK ? conn.getInputStream() : conn.getErrorStream(),
-                    StandardCharsets.UTF_8))) {
-                StringBuilder response = new StringBuilder();
-                String responseLine;
-                while ((responseLine = br.readLine()) != null) {
-                    response.append(responseLine.trim());
-                }
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    return response.toString(); // Success response
-                } else {
-                    return "Error: " + responseCode + " - " + response.toString(); // Error response
-                }
-            }
-        } catch (Exception e) {
-            return "Exception: " + e.getMessage();
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
+    public void sendMessage(String sender, String receiver, String message) {
+        System.out.println("Message from " + sender + " to " + receiver + ": " + message);
+    }
+
+    public void logoutUser(String username) {
+        System.out.println("User " + username + " has logged out.");
     }
 }
